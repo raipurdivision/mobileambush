@@ -1,0 +1,839 @@
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Ambush Checking Form</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #add8e6 0%, #87ceeb 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .form-container {
+            padding: 30px;
+            background: #e6f2ff;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #5b9dd9 0%, #4a8ec2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            border: 2px solid #3a7ca5;
+            text-transform: uppercase;
+        }
+
+        tbody tr {
+            transition: background-color 0.3s;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #f0f8ff;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+
+        tbody tr:hover {
+            background-color: #d4e9ff;
+        }
+
+        td {
+            padding: 10px;
+            border: 1px solid #b3d9ff;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        td:first-child {
+            font-weight: bold;
+            background-color: #e6f2ff;
+            font-size: 12px;
+        }
+
+        input[type="text"],
+        input[type="time"],
+        input[type="date"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #b3d9ff;
+            border-radius: 5px;
+            font-size: 12px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="time"]:focus,
+        input[type="date"]:focus,
+        input[type="file"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+        }
+
+        .info-fields {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .info-field {
+            flex: 0 1 350px;
+        }
+
+        .info-field label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-size: 12px;
+        }
+
+        .info-field input {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .remarks-section {
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .remarks-section label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-size: 12px;
+        }
+
+        .remarks-section textarea {
+            width: 100%;
+            font-size: 12px;
+            min-height: 60px;
+            border: 1px solid #b3d9ff;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .add-row-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+        }
+
+        .add-row-btn:hover {
+            background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .pdf-btn {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            color: white;
+        }
+
+        .pdf-btn:hover {
+            background: linear-gradient(135deg, #d35400 0%, #ba4a00 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .message {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+<!-- Code injected by Five-server -->
+  <script async data-id="five-server" data-file="c:\Users\asus\OneDrive\Desktop\ALL FORMS\mobile ambush\index.html" type="application/javascript" src="/fiveserver.js"></script>
+  </head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Mobile Ambush Checking</h1>
+        </div>
+
+        <div class="form-container">
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">S/No.</th>
+                            <th style="width: 180px;">Name of Crew</th>
+                            <th style="width: 100px;">Crew ID</th>
+                            <th style="width: 100px;">Desig.</th>
+                            <th style="width: 150px;">Call Logs Found During Run</th>
+                            <th style="width: 150px;">Mobile Status Checked<br>(Switch On/Off)</th>
+                            <th style="width: 120px;">Calling Time</th>
+                            <th style="width: 230px;">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td class="row-number">1</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td class="row-number">2</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td class="row-number">3</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td class="row-number">4</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td class="row-number">5</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td class="row-number">6</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td class="row-number">7</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td class="row-number">8</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td class="row-number">9</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td class="row-number">10</td>
+                            <td><input type="text" placeholder="Enter name"></td>
+                            <td><input type="text" placeholder="Crew ID"></td>
+                            <td><input type="text" placeholder="Designation"></td>
+                            <td><input type="text" placeholder="Call logs"></td>
+                            <td>
+                                <select>
+                                    <option value="">Select</option>
+                                    <option value="Switch On">Switch On</option>
+                                    <option value="Switch Off">Switch Off</option>
+                                </select>
+                            </td>
+                            <td><input type="time"></td>
+                            <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="button-group" style="margin-top: 20px; margin-bottom: 20px;">
+                <button class="add-row-btn" onclick="addRow()">+ Add Row</button>
+            </div>
+
+            <div class="remarks-section">
+                <label for="otherRemarks">Other Remarks if any:</label>
+                <textarea id="otherRemarks" rows="2" placeholder="Enter other remarks if any..."></textarea>
+            </div>
+
+            <div class="info-fields">
+                <div class="info-field">
+                    <label for="formDate">Date:</label>
+                    <input type="date" id="formDate">
+                </div>
+                <div class="info-field">
+                    <label for="cliName">CLI Name and HQ:</label>
+                    <select id="cliName">
+                        <option value="">Select CLI Name and HQ</option>
+                        <option value="A K REDDY/CLI/BIA">A K REDDY/CLI/BIA</option>
+                        <option value="A.R.TARAM/CLI/BIA">A.R.TARAM/CLI/BIA</option>
+                        <option value="ABDUL MOIN KHAN/CLI/BIA">ABDUL MOIN KHAN/CLI/BIA</option>
+                        <option value="AKHILESH KUMAR/CLI/BIA">AKHILESH KUMAR/CLI/BIA</option>
+                        <option value="AMIT KUMAR BANKURE/CLI/BIA">AMIT KUMAR BANKURE/CLI/BIA</option>
+                        <option value="ANANT PRAKASH SHRIVASTAVA/CLI/BIA">ANANT PRAKASH SHRIVASTAVA/CLI/BIA</option>
+                        <option value="ANIL KUMAR/CLI/BIA">ANIL KUMAR/CLI/BIA</option>
+                        <option value="ANKIT RAM KANT/CLI/BIA">ANKIT RAM KANT/CLI/BIA</option>
+                        <option value="AVON KUMAR SAHU/CLI/BIA">AVON KUMAR SAHU/CLI/BIA</option>
+                        <option value="B B KUSHWAHA/CLI/BIA">B B KUSHWAHA/CLI/BIA</option>
+                        <option value="B K HARMUKH/CLI/BIA">B K HARMUKH/CLI/BIA</option>
+                        <option value="B. K. SAHA/CLI/BIA">B. K. SAHA/CLI/BIA</option>
+                        <option value="B.K.SONI/CLI/BIA">B.K.SONI/CLI/BIA</option>
+                        <option value="BHARAT SINGH ATBHAIYYA/CLI/BIA">BHARAT SINGH ATBHAIYYA/CLI/BIA</option>
+                        <option value="BHOLI CHAUDHARY/CLI/BIA">BHOLI CHAUDHARY/CLI/BIA</option>
+                        <option value="BIKRAMJIT KANRAR/CLI/BIA">BIKRAMJIT KANRAR/CLI/BIA</option>
+                        <option value="CLI NAME/CLI/BIA">CLI NAME/CLI/BIA</option>
+                        <option value="DEEPANNITA PUNTAMBEKAR/CLI/BIA">DEEPANNITA PUNTAMBEKAR/CLI/BIA</option>
+                        <option value="G. C. BISWAS/CLI/BIA">G. C. BISWAS/CLI/BIA</option>
+                        <option value="G. V. R. K. MADHU/CLI/BIA">G. V. R. K. MADHU/CLI/BIA</option>
+                        <option value="GIRDHARI LAL/CLI/BIA">GIRDHARI LAL/CLI/BIA</option>
+                        <option value="JAISHANKAR SHARMA/CLI/BIA">JAISHANKAR SHARMA/CLI/BIA</option>
+                        <option value="K P LAHARE/CLI/BIA">K P LAHARE/CLI/BIA</option>
+                        <option value="K. K. SAHU/CLI/BIA">K. K. SAHU/CLI/BIA</option>
+                        <option value="KHUSAL SINGH/CLI/BIA">KHUSAL SINGH/CLI/BIA</option>
+                        <option value="MAHESHWAR/CLI/BIA">MAHESHWAR/CLI/BIA</option>
+                        <option value="MANOJ KUMAR SAO/CLI/BIA">MANOJ KUMAR SAO/CLI/BIA</option>
+                        <option value="MANSUKH LAL CHANDRAKAR/CLI/BIA">MANSUKH LAL CHANDRAKAR/CLI/BIA</option>
+                        <option value="MOHIT KUMAR SWARNKAR/CLI/BIA">MOHIT KUMAR SWARNKAR/CLI/BIA</option>
+                        <option value="N. R. KARPAL/CLI/BIA">N. R. KARPAL/CLI/BIA</option>
+                        <option value="N.K. BHOI/CLI/BIA">N.K. BHOI/CLI/BIA</option>
+                        <option value="P.K. PATEL/CLI/BIA">P.K. PATEL/CLI/BIA</option>
+                        <option value="PANKAJ KUMAR SINGH/CLI/BIA">PANKAJ KUMAR SINGH/CLI/BIA</option>
+                        <option value="PAWAN KUMAR SINGH/CLI/BIA">PAWAN KUMAR SINGH/CLI/BIA</option>
+                        <option value="RAJENDRA KUMAR/CLI/BIA">RAJENDRA KUMAR/CLI/BIA</option>
+                        <option value="RAJENDRA SINGH/CLI/BIA">RAJENDRA SINGH/CLI/BIA</option>
+                        <option value="RAJNEESH BENERJEE/CLI/BIA">RAJNEESH BENERJEE/CLI/BIA</option>
+                        <option value="S K GAUTAM/CLI/BIA">S K GAUTAM/CLI/BIA</option>
+                        <option value="S S HUSSAIN/CLI/BIA">S S HUSSAIN/CLI/BIA</option>
+                        <option value="S. C. RAI/CLI/BIA">S. C. RAI/CLI/BIA</option>
+                        <option value="S. K. SINGH/CLI/BIA">S. K. SINGH/CLI/BIA</option>
+                        <option value="S. L. SONI/CLI/BIA">S. L. SONI/CLI/BIA</option>
+                        <option value="SANJAY KUMAR ROY/CLI/BIA">SANJAY KUMAR ROY/CLI/BIA</option>
+                        <option value="SANJEEV KUMAR SHARMA/CLI/BIA">SANJEEV KUMAR SHARMA/CLI/BIA</option>
+                        <option value="SHAILENDRA SINGH/CLI/BIA">SHAILENDRA SINGH/CLI/BIA</option>
+                        <option value="SUNDEEP KUMAR SHARMA/CLI/BIA">SUNDEEP KUMAR SHARMA/CLI/BIA</option>
+                        <option value="SUNIL KUMAR DEWANGAN/CLI/BIA">SUNIL KUMAR DEWANGAN/CLI/BIA</option>
+                        <option value="TEST ID/CLI/BIA">TEST ID/CLI/BIA</option>
+                        <option value="V.K. BHAGAT/CLI/BIA">V.K. BHAGAT/CLI/BIA</option>
+                        <option value="VIJAY KUMAR ARYA/CLI/BIA">VIJAY KUMAR ARYA/CLI/BIA</option>
+                        <option value="VIKAS SHENDE/CLI/BIA">VIKAS SHENDE/CLI/BIA</option>
+                        <option value="VINAY KUMAR VINCHURE/CLI/BIA">VINAY KUMAR VINCHURE/CLI/BIA</option>
+                        <option value="VINAY PANTAWANE/CLI/BIA">VINAY PANTAWANE/CLI/BIA</option>
+                        <option value="Y. RAMU/CLI/BIA">Y. RAMU/CLI/BIA</option>
+                        <option value="OTHERS">OTHERS</option>
+                    </select>
+                </div>
+                <BR>
+                    <br>
+            
+                <div class="info-field">
+                    <label for="signature">Upload Signature:</label>
+                    <input type="file" id="signature" accept="image/*" onchange="previewSignature(event)">
+                    <div id="signaturePreview" style="margin-top: 10px; display: none;">
+                        <img id="signatureImg" style="max-width: 200px; max-height: 100px; border: 2px solid #4a90e2; border-radius: 5px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="submit-btn" onclick="submitForm()">Submit</button>
+                <button class="pdf-btn" onclick="generatePDF()">Generate PDF</button>
+            </div>
+
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        let rowCount = 10;
+
+        function previewSignature(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('signaturePreview');
+                    const img = document.getElementById('signatureImg');
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addRow() {
+            rowCount++;
+            const tableBody = document.getElementById('tableBody');
+            const newRow = document.createElement('tr');
+
+            newRow.innerHTML = `
+                <td class="row-number">${rowCount}</td>
+                <td><input type="text" placeholder="Enter name"></td>
+                <td><input type="text" placeholder="Crew ID"></td>
+                <td><input type="text" placeholder="Designation"></td>
+                <td><input type="text" placeholder="Call logs"></td>
+                <td>
+                    <select>
+                        <option value="">Select</option>
+                        <option value="Switch On">Switch On</option>
+                        <option value="Switch Off">Switch Off</option>
+                    </select>
+                </td>
+                <td><input type="time"></td>
+                <td><textarea rows="2" placeholder="Enter remarks"></textarea></td>
+            `;
+
+            tableBody.appendChild(newRow);
+            showMessage('Row added successfully!', 'success');
+        }
+
+        function updateRowNumbers() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach((row, index) => {
+                row.querySelector('.row-number').textContent = index + 1;
+            });
+            rowCount = rows.length;
+        }
+
+        function submitForm() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            const data = [];
+            let isValid = true;
+
+            // Get additional form fields
+            const otherRemarks = document.getElementById('otherRemarks').value || '';
+            const formDate = document.getElementById('formDate').value || '';
+            const cliNameSelect = document.getElementById('cliName');
+            const cliName = cliNameSelect.options[cliNameSelect.selectedIndex].value || '';
+
+            // Validate required fields
+            if (!formDate) {
+                showMessage('Please select a date!', 'error');
+                return;
+            }
+
+            if (!cliName) {
+                showMessage('Please select CLI Name and HQ!', 'error');
+                return;
+            }
+
+            rows.forEach((row, index) => {
+                const cells = row.querySelectorAll('input, select, textarea');
+                const rowData = {
+                    sno: index + 1,
+                    name: cells[0].value,
+                    crewId: cells[1].value,
+                    designation: cells[2].value,
+                    callLogs: cells[3].value,
+                    mobileStatus: cells[4].value,
+                    callingTime: cells[5].value,
+                    remarks: cells[6].value
+                };
+
+                data.push(rowData);
+            });
+
+            // Prepare payload for Google Apps Script
+            const payload = {
+                formDate: formDate,
+                cliName: cliName,
+                otherRemarks: otherRemarks,
+                tableData: data
+            };
+
+            console.log('Submitting Data:', payload);
+            showMessage('Submitting data to Google Sheets...', 'success');
+
+            // Submit to Google Apps Script
+            fetch('https://script.google.com/macros/s/AKfycbw4Lyf8w03rCLsQNvvcezkMNZ5D1lW0oyMl4tyndhCq-GeUnvGXPPHXOpAa4LMG9Fnn5Q/exec', {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                showMessage('Data submitted successfully to Google Sheets!', 'success');
+                console.log('Submission successful!');
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showMessage('Error submitting data. Please try again.', 'error');
+            });
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4'); // Portrait orientation
+
+            // Add title
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('MOBILE AMBUSH CHECKING', doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+
+            // Get table data
+            const rows = document.querySelectorAll('#tableBody tr');
+            const tableData = [];
+
+            rows.forEach((row) => {
+                const cells = row.querySelectorAll('input, select, textarea');
+                const rowNumber = row.querySelector('.row-number').textContent;
+
+                tableData.push([
+                    rowNumber,
+                    cells[0].value || '',
+                    cells[1].value || '',
+                    cells[2].value || '',
+                    cells[3].value || '',
+                    cells[4].value || '',
+                    cells[5].value || '',
+                    cells[6].value || ''
+                ]);
+            });
+
+            // Generate table
+            doc.autoTable({
+                head: [['S/No.', 'Name of Crew', 'Crew ID', 'Desig.', 'Call Logs Found', 'Mobile Status', 'Calling Time', 'Remarks']],
+                body: tableData,
+                startY: 25,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [74, 144, 226],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fontSize: 9
+                },
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2.5,
+                    halign: 'center'
+                },
+                columnStyles: {
+                    0: { cellWidth: 10 },
+                    1: { cellWidth: 30 },
+                    2: { cellWidth: 18 },
+                    3: { cellWidth: 18 },
+                    4: { cellWidth: 30 },
+                    5: { cellWidth: 25 },
+                    6: { cellWidth: 18 },
+                    7: { cellWidth: 41 }
+                },
+                alternateRowStyles: {
+                    fillColor: [240, 248, 255]
+                }
+            });
+
+            // Get the Y position after the table
+            let yPosition = doc.lastAutoTable.finalY + 10;
+
+            // Get Other Remarks
+            const otherRemarks = document.getElementById('otherRemarks').value || '';
+
+            // Add Other Remarks if any with outlined box
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Other Remarks if any:', 14, yPosition);
+
+            // Draw outlined box for Other Remarks
+            const boxHeight = 15;
+            const boxWidth = 180;
+            doc.setDrawColor(74, 144, 226);
+            doc.setLineWidth(0.5);
+            doc.rect(14, yPosition + 2, boxWidth, boxHeight);
+
+            // Add text inside the box
+            if (otherRemarks) {
+                doc.setFont(undefined, 'normal');
+                const splitOtherRemarks = doc.splitTextToSize(otherRemarks, boxWidth - 4);
+                doc.text(splitOtherRemarks, 16, yPosition + 7);
+            }
+
+            yPosition += boxHeight + 12;
+
+            // Get CLI Name, Date, and Signature
+            const cliNameSelect = document.getElementById('cliName');
+            const cliName = cliNameSelect.options[cliNameSelect.selectedIndex].value || '';
+            const formDate = document.getElementById('formDate').value || '';
+            const signatureFile = document.getElementById('signature').files[0];
+
+            // Add Signature if uploaded
+            if (signatureFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgData = e.target.result;
+                    const pageWidth = doc.internal.pageSize.getWidth();
+
+                    // Add signature on the right side
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Signature:', pageWidth - 54, yPosition);
+                    doc.addImage(imgData, 'PNG', pageWidth - 54, yPosition + 2, 40, 15);
+
+                    // Add Date and CLI Name after signature
+                    addDateAndCLI();
+                    saveDocument();
+                };
+                reader.readAsDataURL(signatureFile);
+            } else {
+                // Add Date and CLI Name without signature
+                addDateAndCLI();
+                saveDocument();
+            }
+
+            function addDateAndCLI() {
+                const pageWidth = doc.internal.pageSize.getWidth();
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+
+                // If signature was added, move down
+                if (signatureFile) {
+                    yPosition += 20;
+                }
+
+                // Date on the left
+                if (formDate) {
+                    doc.text(`Date: ${formDate}`, 14, yPosition);
+                }
+
+                // CLI Name on the right (below signature if exists)
+                if (cliName) {
+                    doc.text(`CLI Name and HQ: ${cliName}`, pageWidth - 14, yPosition, { align: 'right' });
+                }
+            }
+
+            function saveDocument() {
+                // Save PDF
+                const timestamp = new Date().toISOString().split('T')[0];
+                doc.save(`Mobile_Ambush_Checking_${timestamp}.pdf`);
+                showMessage('PDF generated and downloaded successfully!', 'success');
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
