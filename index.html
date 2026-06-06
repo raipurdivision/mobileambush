@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -449,7 +450,7 @@
             </div>
             <div class="tif">
                 <label for="ambushDate">Date:</label>
-                <input type="text" id="ambushDate" maxlength="10">
+                <input type="date" id="ambushDate">
             </div>
             <div class="tif">
                 <label for="placeOfAmbush">Place of Ambush:</label>
@@ -494,7 +495,7 @@
         <div class="info-fields" style="margin-top:15px;">
             <div class="info-field">
                 <label for="formDate">Date:</label>
-                <input type="text" id="formDate" maxlength="10">
+                <input type="date" id="formDate">
             </div>
         </div>
 
@@ -505,7 +506,7 @@
             <h3>CLI Name, HQ &amp; Signature</h3>
             <div class="cli-row">
 
-                <!-- CLI 1 -->
+                <!-- CLI 2 -->
                 <div class="cli-col">
                     <h4>CLI – 2</h4>
                     <div class="field-group">
@@ -598,7 +599,7 @@
                     </div>
                 </div>
 
-                <!-- CLI 2 -->
+                <!-- CLI 1 -->
                 <div class="cli-col">
                     <h4>CLI – 1</h4>
                     <div class="field-group">
@@ -923,7 +924,6 @@ function submitForm() {
     const otherRemarks = document.getElementById('otherRemarks').value || '';
 
     if (!formDate)  { showMessage('Please select a date!', 'error'); return; }
-    if (!cliName)   { showMessage('Please select CLI 2 Name and HQ!', 'error'); return; }
 
     const rows = document.querySelectorAll('#tableBody tr');
     const data = [];
@@ -992,7 +992,6 @@ function saveToSheet(sheetName) {
     params.append('otherRemarks',  otherRemarks);
 
     // Validation
-    if (!cliName1) { showMessage('Please select CLI 2 Name and HQ!', 'error'); return; }
     if (!(date || ambushDate)) { showMessage('Please enter a date!', 'error'); return; }
 
     showMessage('Saving data to Google Sheet......', 'success');
@@ -1027,7 +1026,6 @@ function submitLobbyInspection() {
     var place        = document.getElementById('placeOfAmbush').value || '';
     var otherRemarks = document.getElementById('otherRemarks').value  || '';
 
-    if (!cliName1) { showMessage('Please select CLI 2 Name and HQ!', 'error'); return; }
     if (!date)     { showMessage('Please enter a date!', 'error'); return; }
 
     var rowLines = [];
@@ -1113,7 +1111,7 @@ function generatePDF() {
 
     // ── Top info block ──
     const conductedBy   = document.getElementById('conductedBy').value   || '';
-    const ambushDate    = document.getElementById('ambushDate').value     || '';
+    const ambushDate    = formatDateDMY(document.getElementById('ambushDate').value)     || '';
     const placeOfAmbush = document.getElementById('placeOfAmbush').value || '';
     const ambushTime    = document.getElementById('ambushTime').value     || '';
 
@@ -1165,6 +1163,12 @@ function generatePDF() {
 
     let yPos = doc.lastAutoTable.finalY + 10;
 
+    // ── If more than 20 rows, force remarks/details onto page 2 ──
+    if (rows.length > 20) {
+        doc.addPage();
+        yPos = 20;
+    }
+
     // ── Other Remarks subheading ──
     const otherRemarks = document.getElementById('otherRemarks').value || '';
     const rmkLabelW = pageW - 28;
@@ -1180,7 +1184,7 @@ function generatePDF() {
     yPos += 22;
 
     // ── Date (bottom) ──
-    const formDate = document.getElementById('formDate').value || '';
+    const formDate = formatDateDMY(document.getElementById('formDate').value) || '';
     if (formDate) {
         subLabel('Date :', 14, yPos, formDate, 14 + doc.getTextWidth('Date :') + 6);
     }
@@ -1192,22 +1196,22 @@ function generatePDF() {
     const cliName2Sel = document.getElementById('cliName2').value || '';
     const cliName  = cliNameSel  === 'OTHERS' ? (document.getElementById('cliNameOther').value  || 'OTHERS') : cliNameSel;
     const cliName2 = cliName2Sel === 'OTHERS' ? (document.getElementById('cliName2Other').value || 'OTHERS') : cliName2Sel;
-    const sig1File = document.getElementById('signature').files[0];
-    const sig2File = document.getElementById('signature2').files[0];
+    const sig1File = document.getElementById('signature').files[0];   // belongs to cliName (CLI1)
+    const sig2File = document.getElementById('signature2').files[0];  // belongs to cliName2 (CLI2)
 
-    const blockW = 42;  // 50% of original 85
-    const leftX  = 14;
-    const rightX = pageW - 14 - blockW;
+    const blockW = 42;
+    const leftX  = 14;                    // CLI 2 goes LEFT
+    const rightX = pageW - 14 - blockW;   // CLI 1 goes RIGHT
 
-    // Signature boxes — no border, 50% width
+    // Signature boxes — CLI2 left, CLI1 right
     function finalize(sig1DataUrl, sig2DataUrl) {
-        if (sig1DataUrl) doc.addImage(sig1DataUrl, 'PNG', leftX,  yPos, blockW, 10);
-        if (sig2DataUrl) doc.addImage(sig2DataUrl, 'PNG', rightX, yPos, blockW, 10);
+        if (sig1DataUrl) doc.addImage(sig1DataUrl, 'PNG', leftX,  yPos, blockW, 10);  // cliName sig left
+        if (sig2DataUrl) doc.addImage(sig2DataUrl, 'PNG', rightX, yPos, blockW, 10);  // cliName2 sig right
 
-        yPos += 24;
+        yPos += 16;
         doc.setFontSize(8); doc.setFont(undefined,'bold'); doc.setTextColor(0,0,0);
-        if (cliName)  doc.text(cliName,  leftX,  yPos);
-        if (cliName2) doc.text(cliName2, rightX, yPos);
+        if (cliName)  doc.text(cliName,  leftX,  yPos);   // cliName left
+        if (cliName2) doc.text(cliName2, rightX, yPos);   // cliName2 right
 
         const ts = new Date().toISOString().split('T')[0];
         doc.save(`Mobile_Ambush_Checking_${ts}.pdf`);
@@ -1260,21 +1264,13 @@ function setupOthersDropdown(selectId, boxId) {
 }
 
 /* ═══════════════════════════════════════════════════
-   DD/MM/YYYY DATE MASK
-   Applies to any <input type="text"> with class date-mask
-   or IDs: ambushDate, formDate
+   DATE PICKER → DD/MM/YYYY CONVERTER
+   type=date inputs return YYYY-MM-DD; convert for display in PDF
 ═══════════════════════════════════════════════════ */
-function applyDateMask(inputEl) {
-    inputEl.setAttribute('placeholder', 'DD/MM/YYYY');
-    inputEl.setAttribute('maxlength', '10');
-    inputEl.addEventListener('input', function(e) {
-        let v = this.value.replace(/\D/g, '').substring(0, 8);
-        let out = '';
-        if (v.length > 0) out += v.substring(0, 2);
-        if (v.length >= 3) out += '/' + v.substring(2, 4);
-        if (v.length >= 5) out += '/' + v.substring(4, 8);
-        this.value = out;
-    });
+function formatDateDMY(isoVal) {
+    if (!isoVal) return '';
+    const [y, m, d] = isoVal.split('-');
+    return d && m && y ? d + '/' + m + '/' + y : isoVal;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1293,11 +1289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const box = document.getElementById(id + 'OtherBox');
         if (sel && box && sel.value === 'OTHERS') box.style.display = 'block';
     });
-    // DD/MM/YYYY date masks
-    ['ambushDate','formDate'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) applyDateMask(el);
-    });
+    // date inputs are type=date — no mask needed
 });
 </script>
 </body>
