@@ -3,6 +3,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -113,12 +114,71 @@
 
         .autosave-dot.saving {
             background: #ff9800;
+            animation: pulse 1s infinite;
+        }
+
+        .autosave-dot.saved {
+            background: #2ecc71;
+            animation: none;
+            box-shadow: 0 0 6px rgba(46,204,113,0.6);
+        }
+
+        .autosave-dot.nosave {
+            background: #e74c3c;
             animation: none;
         }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
+        }
+
+        /* ── SAVING OVERLAY (circular animation) ── */
+        .saving-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(10,20,50,0.72);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .saving-overlay.show { display: flex; }
+
+        .saving-box {
+            background: #fff;
+            padding: 28px 36px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 10px 34px rgba(0,0,0,0.35);
+            min-width: 260px;
+        }
+
+        .saving-spinner {
+            width: 64px; height: 64px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            border: 7px solid #d6e6f7;
+            border-top-color: #0a2060;
+            animation: saving-spin 0.9s linear infinite;
+        }
+
+        @keyframes saving-spin { to { transform: rotate(360deg); } }
+
+        .saving-text {
+            font-size: 1.02em;
+            font-weight: bold;
+            color: #0a2060;
+            letter-spacing: 0.5px;
+        }
+
+        .saving-sub {
+            margin-top: 6px;
+            font-size: 0.82em;
+            color: #607d8b;
+            font-weight: bold;
         }
 
         .clear-draft-btn {
@@ -401,6 +461,22 @@
         .pdf-btn { background: #c0392b; color: white; }
         .pdf-btn:hover { background: #a93226; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
 
+        .save-draft-btn { background: linear-gradient(135deg,#9b59b6,#8e44ad); color: #fff; }
+        .save-draft-btn:hover { background: linear-gradient(135deg,#8e44ad,#7d3c98); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+
+        .upload-draft-btn { background: linear-gradient(135deg,#16a085,#138d75); color: #fff; }
+        .upload-draft-btn:hover { background: linear-gradient(135deg,#138d75,#117a65); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+
+        button:disabled, button[disabled] {
+            background: #b0bec5 !important;
+            color: #eceff1 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            transform: none !important;
+            opacity: 0.85;
+        }
+        button:disabled:hover { background: #b0bec5 !important; transform: none !important; }
+
         .message {
             display: none;
             margin-top: 20px;
@@ -435,8 +511,8 @@
     <!-- Auto-save status bar -->
     <div class="autosave-bar">
         <div class="autosave-status">
-            <div class="autosave-dot" id="saveDot"></div>
-            <span id="saveStatus">Auto-save active – data saved automatically</span>
+            <div class="autosave-dot nosave" id="saveDot"></div>
+            <span id="saveStatus">No saved draft</span>
         </div>
         <button class="clear-draft-btn" onclick="clearDraft()">🗑 Clear Draft</button>
     </div>
@@ -469,7 +545,7 @@
                     <tr>
                         <th style="width:50px;">S/No.</th>
                         <th style="width:180px;">Name of Crew</th>
-                        <th style="width:100px;">Crew ID</th>
+                        <th style="width:115px;">Crew ID</th>
                         <th style="width:100px;">Desig.</th>
                         <th style="width:150px;">Call Logs Found During Run</th>
                         <th style="width:150px;">Mobile Status Checked<br>(Switch On/Off)</th>
@@ -728,11 +804,24 @@
             </div><!-- .cli-row -->
         </div><!-- .cli-signature-section -->
 
+        <input type="file" id="draftFileInput" accept=".json" onchange="handleDraftUpload(event)" style="display:none;">
+
         <div id="message" class="message"></div>
 
+        <!-- ── SAVING OVERLAY ── -->
+        <div id="savingOverlay" class="saving-overlay">
+            <div class="saving-box">
+                <div class="saving-spinner"></div>
+                <div class="saving-text">⏳ PLEASE WAIT — DATA SAVING...</div>
+                <div class="saving-sub">Do not close or refresh this page</div>
+            </div>
+        </div>
+
         <div class="button-group">
-            <button class="submit-btn" onclick="submitForm()">Submit</button>
-            <button class="pdf-btn" onclick="generatePDF()">Generate PDF</button>
+            <button class="save-draft-btn" onclick="saveDraft()">💾 Save Draft</button>
+            <button class="upload-draft-btn" onclick="document.getElementById('draftFileInput').click()">📂 Upload Draft</button>
+            <button class="submit-btn" id="submitBtn" onclick="submitForm()">✅ Submit</button>
+            <button class="pdf-btn" onclick="generatePDF()">📄 Generate PDF</button>
         </div>
     </div>
 </div>
@@ -813,6 +902,29 @@ function previewSignature(event, imgId, previewId) {
 const STORAGE_KEY = 'mobileAmbushDraft';
 let isSubmitted = false;
 let saveTimer = null;
+let lastSubmittedSnapshot = null;   // full snapshot of data as of the last successful submit
+let lastSubmittedRowSigs  = [];     // per-row signature strings as of the last successful submit
+
+// Build a comparable signature string for a single row's data
+function rowSignature(r) {
+    return [r.name, r.crewId, r.designation, r.callLogs, r.mobileStatus, r.callingTime, r.remarks].join('||');
+}
+
+// True if anything (header fields or table rows) differs from the last successful submit
+function hasUnsavedChanges() {
+    if (!lastSubmittedSnapshot) return true; // nothing has ever been submitted
+    const current = collectFormData();
+    const headerFields = ['conductedBy','ambushDate','placeOfAmbush','ambushTime','formDate','cliName','cliName2','otherRemarks'];
+    for (const f of headerFields) {
+        if ((current[f] || '') !== (lastSubmittedSnapshot[f] || '')) return true;
+    }
+    const currentSigs = (current.rows || []).map(rowSignature);
+    if (currentSigs.length !== lastSubmittedRowSigs.length) return true;
+    for (let i = 0; i < currentSigs.length; i++) {
+        if (currentSigs[i] !== lastSubmittedRowSigs[i]) return true;
+    }
+    return false;
+}
 
 function collectFormData() {
     const rows = [];
@@ -843,25 +955,57 @@ function collectFormData() {
     };
 }
 
-function saveFormData() {
-    // Visual indicator – dot turns orange while saving
+let autoSaveEnabled = true;
+
+function setAutosaveStatus(state, text) {
     const dot = document.getElementById('saveDot');
-    dot.classList.add('saving');
+    const txt = document.getElementById('saveStatus');
+    if (!dot || !txt) return;
+    dot.className = 'autosave-dot ' + state;
+    txt.textContent = text;
+}
+
+function saveFormData() {
+    if (!autoSaveEnabled) return;
+    // Visual indicator – dot turns orange while saving
+    setAutosaveStatus('saving', 'Saving…');
 
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
         try {
             const data = collectFormData();
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             const now = new Date();
             const t = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-            document.getElementById('saveStatus').textContent = `Draft saved at ${t}`;
+            data.savedAt = now.toISOString();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            setAutosaveStatus('saved', `Draft saved at ${t}`);
         } catch(e) {
-            document.getElementById('saveStatus').textContent = 'Auto-save failed (storage full?)';
+            setAutosaveStatus('nosave', 'Auto-save failed (storage full?)');
         }
-        dot.classList.remove('saving');
+
+        // If data was already submitted once, and the form now differs from
+        // what was last submitted, re-enable the Submit button so the newly
+        // entered data can be saved.
+        if (isSubmitted && hasUnsavedChanges()) {
+            isSubmitted = false;
+            setSubmitButton('ready');
+        }
     }, 600); // debounce 600 ms
 }
+
+// Save immediately on page unload (power cut / tab close / refresh)
+window.addEventListener('beforeunload', function() {
+    if (autoSaveEnabled) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormData())); } catch(e) {}
+    }
+});
+
+// Save when tab becomes hidden (switching apps, screen off)
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden' && autoSaveEnabled) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormData())); } catch(e) {}
+    }
+});
 
 function restoreFormData() {
     try {
@@ -897,15 +1041,34 @@ function restoreFormData() {
             if (cells[6]) cells[6].value = rd.remarks     || '';
         });
 
-        const saved = new Date(JSON.parse(raw).savedAt || Date.now());
-        document.getElementById('saveStatus').textContent = 'Draft restored – last saved earlier';
+        let savedWhen = 'earlier';
+        if (data.savedAt) {
+            const d = new Date(data.savedAt);
+            savedWhen = d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        }
+        setAutosaveStatus('saved', 'Restored — ' + savedWhen);
+        setTimeout(() => {
+            showMessage('✅ Draft restored from auto-save (' + savedWhen + ')', 'success');
+        }, 400);
+
+        // Treat the just-restored draft as the current "saved" baseline.
+        // If the user clicks Submit without typing anything new, submitForm()
+        // will see no unsaved changes and simply show the
+        // "No new data to save" message instead of saving again.
+        lastSubmittedSnapshot = collectFormData();
+        lastSubmittedRowSigs  = (lastSubmittedSnapshot.rows || []).map(rowSignature);
+        isSubmitted = true;
+        setSubmitButton('saved');
     } catch(e) {
         console.warn('Could not restore draft:', e);
+        setAutosaveStatus('nosave', 'Restore failed');
     }
 }
 
 function clearDraft() {
-    if (!confirm('Delete the saved draft? All unsaved data will be lost.')) return;
+    if (!confirm('🗑️ Delete the saved draft?\n\nThis will remove all auto-saved data and reset the form. This cannot be undone.')) return;
+    autoSaveEnabled = false;
+    clearTimeout(saveTimer);
     localStorage.removeItem(STORAGE_KEY);
     buildDefaultRows(TOTAL_DEFAULT_ROWS);
     document.getElementById('conductedBy').value   = '';
@@ -916,10 +1079,114 @@ function clearDraft() {
     document.getElementById('cliName').value      = '';
     document.getElementById('cliName2').value     = '';
     document.getElementById('otherRemarks').value = '';
+
+    // Reset OTHERS boxes
+    ['cliNameOtherBox','cliName2OtherBox'].forEach(id => {
+        const box = document.getElementById(id);
+        if (box) { box.style.display = 'none'; const inp = box.querySelector('input'); if (inp) inp.value = ''; }
+    });
+
+    // Clear signature files and previews
+    ['signature','signature2'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
+    ['signaturePreview','signaturePreview2'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+
     attachAllListeners();
     isSubmitted = false;
-    document.getElementById('saveStatus').textContent = 'Draft cleared';
-    showMessage('Draft cleared successfully!', 'success');
+    lastSubmittedSnapshot = null;
+    lastSubmittedRowSigs  = [];
+    setSubmitButton('ready');
+    setAutosaveStatus('nosave', 'No saved draft');
+    showMessage('🗑️ Draft cleared. Form has been reset!', 'success');
+    setTimeout(() => { autoSaveEnabled = true; }, 2000);
+}
+
+/* ═══════════════════════════════════════════════════
+   SAVING OVERLAY + SUBMIT BUTTON STATE
+═══════════════════════════════════════════════════ */
+function showSavingOverlay() {
+    const o = document.getElementById('savingOverlay');
+    if (o) o.classList.add('show');
+}
+function hideSavingOverlay() {
+    const o = document.getElementById('savingOverlay');
+    if (o) o.classList.remove('show');
+}
+function setSubmitButton(state) {
+    const b = document.getElementById('submitBtn');
+    if (!b) return;
+    if (state === 'saving')      { b.disabled = true;  b.textContent = '⏳ Saving...'; }
+    else if (state === 'saved')  { b.disabled = true;  b.textContent = '✅ Data Saved'; }
+    else                         { b.disabled = false; b.textContent = '✅ Submit'; }
+}
+
+/* ═══════════════════════════════════════════════════
+   SAVE DRAFT (download as .json file)
+═══════════════════════════════════════════════════ */
+function saveDraft() {
+    try {
+        const data = collectFormData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Mobile_Ambush_Draft_' + new Date().toISOString().split('T')[0] + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showMessage('Draft saved!', 'success');
+    } catch (e) {
+        showMessage('Error saving draft: ' + e.message, 'error');
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   UPLOAD DRAFT (load from a previously saved .json file)
+═══════════════════════════════════════════════════ */
+function handleDraftUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const data = JSON.parse(e.target.result);
+            const savedRowCount = data.rowCount || TOTAL_DEFAULT_ROWS;
+            buildDefaultRows(Math.max(savedRowCount, TOTAL_DEFAULT_ROWS));
+
+            if (data.conductedBy)    document.getElementById('conductedBy').value   = data.conductedBy;
+            if (data.ambushDate)     document.getElementById('ambushDate').value    = data.ambushDate;
+            if (data.placeOfAmbush)  document.getElementById('placeOfAmbush').value = data.placeOfAmbush;
+            if (data.ambushTime)     document.getElementById('ambushTime').value    = data.ambushTime;
+            if (data.formDate)       document.getElementById('formDate').value      = data.formDate;
+            if (data.cliName)        document.getElementById('cliName').value       = data.cliName;
+            if (data.cliName2)       document.getElementById('cliName2').value      = data.cliName2;
+            if (data.otherRemarks)   document.getElementById('otherRemarks').value  = data.otherRemarks;
+
+            const rows = document.querySelectorAll('#tableBody tr');
+            (data.rows || []).forEach((rd, i) => {
+                if (!rows[i]) return;
+                const cells = rows[i].querySelectorAll('input, select, textarea');
+                if (cells[0]) cells[0].value = rd.name         || '';
+                if (cells[1]) cells[1].value = rd.crewId       || '';
+                if (cells[2]) cells[2].value = rd.designation  || '';
+                if (cells[3]) cells[3].value = rd.callLogs     || '';
+                if (cells[4]) cells[4].value = rd.mobileStatus || '';
+                if (cells[5]) cells[5].value = rd.callingTime  || '';
+                if (cells[6]) cells[6].value = rd.remarks      || '';
+            });
+
+            attachAllListeners();
+            showMessage('Draft loaded successfully!', 'success');
+        } catch (err) {
+            showMessage('Error loading draft: ' + err.message, 'error');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
 }
 
 /* ═══════════════════════════════════════════════════
@@ -950,7 +1217,10 @@ function attachAllListeners() {
    SUBMIT
 ═══════════════════════════════════════════════════ */
 function submitForm() {
-    if (isSubmitted) { showMessage('⚠️ Data already submitted. Clear the draft to submit again.', 'error'); return; }
+    if (isSubmitted && !hasUnsavedChanges()) {
+        showMessage('⚠️ Data already saved. No new data to save.', 'error');
+        return;
+    }
     const formDate = document.getElementById('formDate').value;
     const cliName  = document.getElementById('cliName').value;
     const cliName2 = document.getElementById('cliName2').value;
@@ -975,7 +1245,10 @@ function submitForm() {
     });
 
     const payload = { formDate, cliName, cliName2, otherRemarks, tableData: data };
-    showMessage('Submitting data to Google Sheets...', 'success');
+
+    // Disable submit button and show "please wait" circular animation
+    setSubmitButton('saving');
+    showSavingOverlay();
 
     // ── Save to Mobile Ambush sheet ──
     saveToSheet('Mobile Ambush');
@@ -996,8 +1269,11 @@ function saveToSheet(sheetName) {
     const place         = document.getElementById('placeOfAmbush').value || '';
     const otherRemarks  = document.getElementById('otherRemarks').value  || '';
 
-    // Collect row-level data as JSON string for "remarks" field
+    // Collect row-level data, but only rows that are NEW or CHANGED since the
+    // last successful submit — already-saved, unchanged rows are skipped so
+    // they are not written to the sheet again.
     const rows = [];
+    const currentRowSigs = [];
     document.querySelectorAll('#tableBody tr').forEach((row, i) => {
         const cells = row.querySelectorAll('input, select, textarea');
         const name   = cells[0] ? cells[0].value : '';
@@ -1007,27 +1283,52 @@ function saveToSheet(sheetName) {
         const mobStatus = cells[4] ? cells[4].value : '';
         const calTime = cells[5] ? cells[5].value : '';
         const rem    = cells[6] ? cells[6].value : '';
-        if (name || crewId || desig || callLogs || mobStatus || calTime || rem) {
-            rows.push(`[${i+1}] ${name} | ${crewId} | ${desig} | Calls:${callLogs} | Mobile:${mobStatus} | Time:${calTime} | Rem:${rem}`);
-        }
+        const sig = rowSignature({ name, crewId, designation: desig, callLogs, mobileStatus: mobStatus, callingTime: calTime, remarks: rem });
+        currentRowSigs.push(sig);
+
+        const isEmpty = !(name || crewId || desig || callLogs || mobStatus || calTime || rem);
+        if (isEmpty) return;
+
+        const alreadySaved = lastSubmittedRowSigs[i] === sig;
+        if (alreadySaved) return; // skip data already saved in a previous submit
+
+        rows.push(`[${i+1}] ${name} | ${crewId} | ${desig} | Calls:${callLogs} | Mobile:${mobStatus} | Time:${calTime} | Rem:${rem}`);
     });
-    const remarksText = rows.join('\n') || conductedBy;
+
+    const remarksText = rows.join('\n') || (lastSubmittedSnapshot ? '' : conductedBy);
+
+    // On the very first submit we send everything (header info + table data).
+    // On every submit after that, only the table data (remarks) is saved —
+    // CLI1 / CLI2 name, date, time and place of ambush are NOT re-sent so
+    // they aren't duplicated/overwritten in the sheet.
+    const isResubmit = !!lastSubmittedSnapshot;
 
     // Build URL-encoded body (Apps Script reads e.parameter)
     const params = new URLSearchParams();
     params.append('sheet',         sheetName);
-    params.append('cliName1',      cliName1);
-    params.append('cliName2',      cliName2);
-    params.append('date',          date || ambushDate);
-    params.append('time',          time);
-    params.append('place',         place);
+    if (!isResubmit) {
+        params.append('cliName1', cliName1);
+        params.append('cliName2', cliName2);
+        params.append('date',     date || ambushDate);
+        params.append('time',     time);
+        params.append('place',    place);
+    } else {
+        params.append('cliName1', '');
+        params.append('cliName2', '');
+        params.append('date',     '');
+        params.append('time',     '');
+        params.append('place',    '');
+    }
     params.append('remarks',       remarksText);
     params.append('otherRemarks',  otherRemarks);
 
     // Validation
-    if (!(date || ambushDate)) { showMessage('Please enter a date!', 'error'); return; }
-
-    showMessage('Saving data to Google Sheet......', 'success');
+    if (!(date || ambushDate)) {
+        hideSavingOverlay();
+        setSubmitButton('ready');
+        showMessage('Please enter a date!', 'error');
+        return;
+    }
 
     fetch(SHEET_SCRIPT_URL, {
         method: 'POST',
@@ -1037,9 +1338,17 @@ function saveToSheet(sheetName) {
     })
     .then(() => {
         isSubmitted = true;
+        // Remember exactly what has now been saved, so if the user edits
+        // the form again, only the new/changed data is sent next time.
+        lastSubmittedSnapshot = collectFormData();
+        lastSubmittedRowSigs  = (lastSubmittedSnapshot.rows || []).map(rowSignature);
+        hideSavingOverlay();
+        setSubmitButton('saved');
         showMessage('✅ Data saved successfully!', 'success');
     })
     .catch(err => {
+        hideSavingOverlay();
+        setSubmitButton('ready');
         showMessage('❌ Error saving data. Please try again.', 'error');
         console.error(err);
     });
@@ -1190,7 +1499,7 @@ function generatePDF() {
         theme: 'grid',
         headStyles: { fillColor: [26,58,143], textColor:[255,255,255], fontStyle:'bold', halign:'center', fontSize:9 },
         styles: { fontSize:8, cellPadding:2.5, halign:'center', textColor: [0,0,0] },
-        columnStyles: { 0:{cellWidth:10}, 1:{cellWidth:30}, 2:{cellWidth:18}, 3:{cellWidth:18}, 4:{cellWidth:30}, 5:{cellWidth:25}, 6:{cellWidth:18}, 7:{cellWidth:41} },
+        columnStyles: { 0:{cellWidth:10}, 1:{cellWidth:30}, 2:{cellWidth:22}, 3:{cellWidth:18}, 4:{cellWidth:30}, 5:{cellWidth:25}, 6:{cellWidth:18}, 7:{cellWidth:37} },
         alternateRowStyles: { fillColor:[232,237,248] }
     });
 
