@@ -547,6 +547,43 @@
             button { width: 100%; }
             .cli-row { flex-direction: column; }
         }
+
+        /* ══ COMPACT LAYOUT OVERRIDES ══ */
+        body { padding: 8px; }
+        .form-container { padding: 12px 14px; }
+        .top-info-strip { padding: 8px 12px; margin-bottom: 8px; gap: 8px; border-top-width: 3px; }
+        .top-info-strip .tif label { margin-bottom: 2px; font-size: 11px; }
+        .top-info-strip .tif input { padding: 4px 8px; font-size: 12px; }
+        .table-wrapper { margin-bottom: 8px; }
+        th { padding: 6px 6px; font-size: 11px; }
+        td { padding: 3px 5px; }
+        td input, td select, td textarea { padding: 3px 5px; }
+        .add-row-btn { padding: 6px 18px; font-size: 0.85em; }
+        .remarks-section { margin-top: 8px; margin-bottom: 8px; }
+        .remarks-section label, .info-field label { margin-bottom: 2px; }
+        .remarks-section textarea { min-height: 38px; padding: 4px 6px; }
+        .info-fields { margin-bottom: 6px; gap: 10px; }
+        .info-field input { padding: 4px 8px; }
+        .action-bar { margin-top: 8px; padding: 6px; }
+        .message { margin-top: 8px; padding: 8px; }
+
+        /* CLI name + signature: one compact row of 4 cards */
+        .cli-signature-section { margin-top: 8px; background: none; border: none; padding: 0; border-radius: 0; }
+        .cli-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 0; }
+        .cli-col { display: contents; }
+        .cli-col .field-group { margin-bottom: 0; min-width: 0; }
+        .cli-col label { font-size: 12px; margin-bottom: 3px; }
+        .cli-col select,
+        .cli-col input[type="file"] {
+            display: block; width: 100%;
+            padding: 6px 8px; font-size: 12px; font-weight: bold;
+            background: #e3f0ff; border: 2px solid #b3d1f5; border-radius: 8px;
+        }
+        .cli-col select { background: #fff; padding: 6px 4px; }
+        .sig-preview { margin-top: 4px; }
+        .sig-preview img { max-height: 40px; max-width: 140px; border-width: 1px; }
+        @media (max-width: 900px) { .cli-row { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 520px) { .cli-row { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -611,7 +648,7 @@
             </table>
         </div>
 
-        <div class="button-group" style="margin-top:20px;margin-bottom:20px;">
+        <div class="button-group" style="margin-top:8px;margin-bottom:8px;">
             <button class="add-row-btn" onclick="addRow()">+ Add Row</button>
         </div>
 
@@ -621,7 +658,7 @@
         </div>
 
         <!-- Date field -->
-        <div class="info-fields" style="margin-top:15px;">
+        <div class="info-fields" style="margin-top:8px;">
             <div class="info-field">
                 <label for="formDate">Date:</label>
                 <input type="date" id="formDate">
@@ -632,12 +669,10 @@
              TWO CLI NAME & SIGNATURE SECTION
              ══════════════════════════════════════════ -->
         <div class="cli-signature-section">
-            <h3>CLI Name, HQ &amp; Signature</h3>
             <div class="cli-row">
 
                 <!-- CLI 2 -->
                 <div class="cli-col">
-                    <h4>CLI – 2</h4>
                     <div class="field-group">
                         <label for="cliName">CLI Name and HQ:</label>
                         <select id="cliName">
@@ -737,7 +772,7 @@
                             <option value="BHOLI CHOUDHARY/CLI/R">BHOLI CHOUDHARY/CLI/R</option>
                             <option value="OTHERS">OTHERS</option>
                         </select>
-                        <div id="cliNameOtherBox" style="display:none;margin-top:6px;">
+                        <div id="cliNameOtherBox" style="display:none;margin-top:4px;">
                             <input type="text" id="cliNameOther" placeholder="Enter CLI Name manually..." style="width:100%;padding:5px 7px;border:2px solid #e74c3c;border-radius:5px;font-size:11px;font-weight:bold;background:#fff8f8;text-transform:uppercase;">
                         </div>
                     </div>
@@ -752,11 +787,10 @@
 
                 <!-- CLI 1 -->
                 <div class="cli-col">
-                    <h4>CLI – 1</h4>
                     <div class="field-group">
-                        <label for="cliName2">CLI Name and HQ:</label>
+                        <label for="cliName2">2nd CLI Name and HQ:</label>
                         <select id="cliName2">
-                            <option value="">Select CLI Name and HQ</option>
+                            <option value="">Select 2nd CLI Name and HQ (optional)</option>
                             <option value="A K REDDY/CLI/R">A K REDDY/CLI/R</option>
                             <option value="A.R. TARAM/CLI/BIA">A.R. TARAM/CLI/BIA</option>
                             <option value="ABDUL MOIN KHAN/CLI/BIA">ABDUL MOIN KHAN/CLI/BIA</option>
@@ -852,12 +886,12 @@
                             <option value="BHOLI CHOUDHARY/CLI/R">BHOLI CHOUDHARY/CLI/R</option>
                             <option value="OTHERS">OTHERS</option>
                         </select>
-                        <div id="cliName2OtherBox" style="display:none;margin-top:6px;">
+                        <div id="cliName2OtherBox" style="display:none;margin-top:4px;">
                             <input type="text" id="cliName2Other" placeholder="Enter CLI Name manually..." style="width:100%;padding:5px 7px;border:2px solid #e74c3c;border-radius:5px;font-size:11px;font-weight:bold;background:#fff8f8;text-transform:uppercase;">
                         </div>
                     </div>
                     <div class="field-group">
-                        <label for="signature2">Upload Signature:</label>
+                        <label for="signature2">Upload 2nd Signature:</label>
                         <input type="file" id="signature2" accept="image/*" onchange="previewSignature(event,'signatureImg2','signaturePreview2')">
                         <div class="sig-preview" id="signaturePreview2">
                             <img id="signatureImg2" alt="Signature 2">
@@ -1407,7 +1441,7 @@ function generatePDF() {
         theme: 'grid',
         headStyles: { fillColor: [26,58,143], textColor:[255,255,255], fontStyle:'bold', halign:'center', fontSize:9 },
         styles: { fontSize:8, cellPadding:2.5, halign:'center', textColor: [0,0,0] },
-        columnStyles: { 0:{cellWidth:10}, 1:{cellWidth:30}, 2:{cellWidth:18}, 3:{cellWidth:18}, 4:{cellWidth:30}, 5:{cellWidth:25}, 6:{cellWidth:18}, 7:{cellWidth:41} },
+        columnStyles: { 0:{cellWidth:10}, 1:{cellWidth:30}, 2:{cellWidth:22}, 3:{cellWidth:18}, 4:{cellWidth:30}, 5:{cellWidth:25}, 6:{cellWidth:18}, 7:{cellWidth:37} },
         alternateRowStyles: { fillColor:[232,237,248] }
     });
 
@@ -1524,10 +1558,83 @@ function formatDateDMY(isoVal) {
 }
 
 /* ═══════════════════════════════════════════════════
+   CLI LIST — dropdown options fetched from Google Sheet ("CLI LIST" tab, column A)
+   The sheet must be shared as "Anyone with the link → Viewer".
+   Falls back to the last cached list, then to the built-in list.
+═══════════════════════════════════════════════════ */
+const CLI_SHEET_ID   = '1H0mYFSkukeAqozr7Ez4dz-8CC9au8pmucjbGwoLUFUo';
+const CLI_SHEET_TAB  = 'CLI LIST';
+const CLI_CACHE_KEY  = 'cliListCache_v1';
+const CLI_CSV_URL    = 'https://docs.google.com/spreadsheets/d/' + CLI_SHEET_ID +
+                       '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(CLI_SHEET_TAB);
+
+function parseFirstColumnCSV(text) {
+    const names = [];
+    let field = '', row = [], inQ = false;
+    const pushRow = () => { row.push(field); field = ''; if (row[0] !== undefined) names.push(row[0]); row = []; };
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQ) {
+            if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
+            else if (c === '"') inQ = false;
+            else field += c;
+        } else if (c === '"') inQ = true;
+        else if (c === ',') { row.push(field); field = ''; }
+        else if (c === '\n') pushRow();
+        else if (c !== '\r') field += c;
+    }
+    if (field || row.length) pushRow();
+    const seen = new Set();
+    return names.map(n => n.trim()).filter(n => {
+        if (!n || n.toUpperCase() === 'CLI LIST' || n === 'OTHERS' || seen.has(n)) return false;
+        seen.add(n); return true;
+    });
+}
+
+function fillCliDropdowns(list) {
+    ['cliName', 'cliName2'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const current = sel.value;
+        while (sel.options.length > 1) sel.remove(1);          // keep placeholder
+        const add = v => { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); };
+        list.forEach(add);
+        add('OTHERS');
+        // keep a previously chosen / restored value even if it is no longer in the sheet
+        if (current && current !== 'OTHERS' && !list.includes(current)) {
+            const o = document.createElement('option'); o.value = current; o.textContent = current;
+            sel.insertBefore(o, sel.options[sel.options.length - 1]);
+        }
+        sel.value = current;
+    });
+}
+
+function applyCachedCliList() {
+    try {
+        const cached = JSON.parse(localStorage.getItem(CLI_CACHE_KEY) || 'null');
+        if (Array.isArray(cached) && cached.length) fillCliDropdowns(cached);
+    } catch (e) { /* ignore */ }
+}
+
+function loadCliListFromSheet() {
+    fetch(CLI_CSV_URL, { cache: 'no-store' })
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        .then(text => {
+            if (/^\s*<(!doctype|html)/i.test(text)) throw new Error('Sheet is not publicly viewable');
+            const list = parseFirstColumnCSV(text);
+            if (!list.length) throw new Error('No names found in CLI LIST');
+            fillCliDropdowns(list);
+            try { localStorage.setItem(CLI_CACHE_KEY, JSON.stringify(list)); } catch (e) {}
+        })
+        .catch(err => console.warn('CLI LIST fetch failed, using cached/built-in list:', err));
+}
+
+/* ═══════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
     buildDefaultRows(TOTAL_DEFAULT_ROWS);
+    applyCachedCliList();   // instant: last fetched CLI list (if any)
     restoreFormData();   // load any saved draft
     attachAllListeners();
     // OTHERS dropdown toggle
@@ -1540,6 +1647,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sel && box && sel.value === 'OTHERS') box.style.display = 'block';
     });
     // date inputs are type=date — no mask needed
+    loadCliListFromSheet();   // refresh CLI dropdowns from Google Sheet
 });
 </script>
 </body>
