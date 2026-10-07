@@ -584,6 +584,192 @@
         .sig-preview img { max-height: 40px; max-width: 140px; border-width: 1px; }
         @media (max-width: 900px) { .cli-row { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 520px) { .cli-row { grid-template-columns: 1fr; } }
+
+        /* ══ MOBILE FIXES: readable inputs inside the table ══ */
+        @media (max-width: 768px) {
+            body { padding: 4px; }
+            .form-container { padding: 8px; }
+
+            /* table scrolls sideways instead of squeezing the boxes */
+            .table-wrapper { -webkit-overflow-scrolling: touch; }
+            table { table-layout: fixed; width: 920px; min-width: 920px; }
+            th:nth-child(1) { width: 44px  !important; }
+            th:nth-child(2) { width: 150px !important; }
+            th:nth-child(3) { width: 100px !important; }
+            th:nth-child(4) { width: 100px !important; }
+            th:nth-child(5) { width: 120px !important; }
+            th:nth-child(6) { width: 130px !important; }
+            th:nth-child(7) { width: 110px !important; }
+            th:nth-child(8) { width: 166px !important; }
+            th { font-size: 10px; padding: 6px 3px; }
+            td { padding: 4px 4px; }
+
+            /* 16px font stops Android/iOS zooming and clipping typed text */
+            td input[type="text"],
+            td select,
+            td textarea {
+                width: 100%;
+                min-width: 0;
+                height: 40px;
+                padding: 6px 8px;
+                font-size: 16px;
+                line-height: 1.2;
+                text-align: left;
+                border-radius: 6px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            td textarea { height: 40px; min-height: 40px; resize: none; padding-top: 9px; }
+            td select { padding: 6px 2px; }
+            td:first-child { font-size: 14px; }
+
+            .top-info-strip .tif { flex: 1 1 100%; }
+            .top-info-strip .tif input,
+            .info-field input,
+            .remarks-section textarea,
+            .cli-col select,
+            .cli-col input[type="file"] { font-size: 16px; padding: 8px 10px; }
+            .info-field { flex: 1 1 100%; }
+        }
+
+        /* ══ MOBILE: ACTION BUTTONS IN ONE ROW, FIXED AT BOTTOM ══ */
+        .action-btn .ab-ico { display: inline; }
+        @media (max-width: 768px) {
+            body { padding-bottom: 56px; }
+
+            .action-bar {
+                position: fixed;
+                left: 0; right: 0; bottom: 0;
+                z-index: 900;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                gap: 5px;
+                margin: 0;
+                padding: 4px 5px calc(4px + env(safe-area-inset-bottom, 0px));
+                background: #e8f0fb;
+                border-radius: 0;
+                box-shadow: 0 -2px 8px rgba(0,0,0,0.18);
+            }
+
+            .action-btn {
+                flex: 1 1 0;
+                width: auto;
+                min-width: 0;
+                flex-direction: column;
+                gap: 1px;
+                padding: 3px 1px 2px;
+                font-size: 8.5px;
+                line-height: 1.1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-transform: none;
+                letter-spacing: 0;
+                text-align: center;
+                background: #14161c;
+                border: none;
+                border-bottom: 3px solid #666;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                text-shadow: none;
+            }
+            .action-btn:hover  { transform: none; filter: none; }
+            .action-btn:active { transform: translateY(1px); border-bottom-width: 3px; filter: brightness(1.4); }
+            .action-btn .ab-ico { font-size: 12px; line-height: 1; }
+            .action-btn .ab-txt { display: block; white-space: nowrap; }
+
+            .btn-download { background: #14161c; border-bottom-color: #7c3aed; }
+            .btn-upload   { background: #14161c; border-bottom-color: #10b981; }
+            .btn-submit   { background: #14161c; border-bottom-color: #2563eb; }
+            .btn-pdf      { background: #14161c; border-bottom-color: #f59e0b; }
+            .btn-reset    { background: #14161c; border-bottom-color: #dc2626; }
+        }
+
+        /* ══ SUBMITTED STATE + "DATA SUBMITTED" POPUP ══ */
+        .action-btn.btn-submit.submitted {
+            background: #4b5563;
+            border-bottom-color: #9ca3af;
+            color: #e5e7eb;
+            cursor: default;
+            filter: none;
+            transform: none;
+            opacity: 0.85;
+        }
+        @media (max-width: 768px) {
+            .action-btn.btn-submit.submitted { background: #2b2f36; border-bottom-color: #6b7280; color: #cbd5e1; }
+        }
+
+        .submitted-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10,32,96,0.55);
+            z-index: 10001;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .submitted-overlay.active { display: flex; }
+        .submitted-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px 30px 26px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 20px 55px rgba(0,0,0,0.4);
+            animation: subPop 0.35s ease-out both;
+        }
+        .submitted-check { width: 96px; height: 96px; margin: 0 auto 14px; display: block; }
+        .sc-circle {
+            stroke: #19a34a; stroke-width: 3;
+            stroke-dasharray: 151; stroke-dashoffset: 151;
+            animation: subDraw 0.6s ease-out 0.1s forwards;
+        }
+        .sc-tick {
+            stroke: #19a34a; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round;
+            stroke-dasharray: 40; stroke-dashoffset: 40;
+            animation: subDraw 0.4s ease-out 0.6s forwards;
+        }
+        .submitted-title { color: #178a3c; font-weight: 800; font-size: 1.25em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .submitted-sub   { color: #444; font-size: 0.92em; }
+        @keyframes subDraw { to { stroke-dashoffset: 0; } }
+        @keyframes subPop  { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* ══ PDF READY POPUP ══ */
+        .pdf-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .pdf-modal.active { display: flex; }
+        .pdf-modal-card {
+            background: #fff;
+            border-radius: 22px;
+            padding: 26px 22px 22px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 55px rgba(0,0,0,0.45);
+        }
+        .pdf-modal-card h2 { color: #178a3c; font-size: 1.5em; margin-bottom: 8px; }
+        .pdf-modal-card p  { color: #333; font-size: 1em; margin-bottom: 18px; line-height: 1.35; }
+        .pdf-modal-card button {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 14px 10px;
+            font-size: 1em;
+            border-radius: 14px;
+            letter-spacing: 1px;
+        }
+        .pdf-modal-card .pm-download { background: #19a34a; color: #fff; text-transform: none; font-size: 1.1em; }
+        .pdf-modal-card .pm-share,
+        .pdf-modal-card .pm-close    { background: #eeeeee; color: #333; }
     </style>
 </head>
 <body>
@@ -905,13 +1091,34 @@
         <div id="message" class="message"></div>
 
         <div class="action-bar">
-            <button class="action-btn btn-pdf" onclick="generatePDF()">📄 PDF</button>
-            <button class="action-btn btn-download" onclick="downloadDraft()">⬇ Download Draft</button>
-            <button class="action-btn btn-upload" onclick="triggerUploadDraft()">⬆ Upload Draft</button>
-            <button class="action-btn btn-reset" onclick="resetForm()">↻ Reset</button>
-            <button class="action-btn btn-submit" onclick="submitForm()">✅ Submit</button>
+            <button class="action-btn btn-download" onclick="downloadDraft()"><span class="ab-ico">💾</span><span class="ab-txt">Save Draft</span></button>
+            <button class="action-btn btn-upload" onclick="triggerUploadDraft()"><span class="ab-ico">📂</span><span class="ab-txt">Upload Draft</span></button>
+            <button id="submitBtn" class="action-btn btn-submit" onclick="submitForm()"><span class="ab-ico">✅</span><span class="ab-txt">Submit</span></button>
+            <button class="action-btn btn-pdf" onclick="generatePDF()"><span class="ab-ico">📄</span><span class="ab-txt">Generate PDF</span></button>
+            <button class="action-btn btn-reset" onclick="resetForm()"><span class="ab-ico">🔄</span><span class="ab-txt">Reset</span></button>
         </div>
         <input type="file" id="draftFileInput" accept="application/json" style="display:none" onchange="handleDraftFileUpload(event)">
+    </div>
+</div>
+
+<div id="pdfModal" class="pdf-modal">
+    <div class="pdf-modal-card">
+        <h2>📄 PDF ready</h2>
+        <p>If the download did not start, tap the button below.</p>
+        <button class="pm-download" onclick="downloadReadyPdf()">⬇️ Download PDF</button>
+        <button class="pm-share" onclick="shareReadyPdf()">📤 Share / Save PDF</button>
+        <button class="pm-close" onclick="closePdfModal()">Close</button>
+    </div>
+</div>
+
+<div id="submittedOverlay" class="submitted-overlay" onclick="hideSubmittedPopup()">
+    <div class="submitted-card">
+        <svg class="submitted-check" viewBox="0 0 52 52" aria-hidden="true">
+            <circle class="sc-circle" cx="26" cy="26" r="24" fill="none"/>
+            <path class="sc-tick" fill="none" d="M14 27 l8 8 l16 -17"/>
+        </svg>
+        <p class="submitted-title">Data Submitted</p>
+        <p class="submitted-sub">Your data has been saved successfully</p>
     </div>
 </div>
 
@@ -1107,6 +1314,7 @@ function clearDraft() {
     document.getElementById('otherRemarks').value = '';
     attachAllListeners();
     isSubmitted = false;
+    setSubmittedState(false);
     document.getElementById('saveStatus').textContent = 'Draft cleared';
     showMessage('Draft cleared successfully!', 'success');
 }
@@ -1148,6 +1356,7 @@ function handleDraftFileUpload(event) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             restoreFormData();
             isSubmitted = false;
+            setSubmittedState(false);
             attachAllListeners();
             showMessage('Draft uploaded and loaded successfully!', 'success');
         } catch (err) {
@@ -1279,7 +1488,8 @@ function saveToSheet(sheetName) {
     .then(() => {
         isSubmitted = true;
         hideSavingOverlay();
-        showMessage('✅ Data saved successfully!', 'success');
+        setSubmittedState(true);
+        showSubmittedPopup();
     })
     .catch(err => {
         hideSavingOverlay();
@@ -1294,6 +1504,32 @@ function showSavingOverlay() {
 
 function hideSavingOverlay() {
     document.getElementById('savingOverlay').classList.remove('active');
+}
+
+/* Submit button: "Submit" -> "Submitted" once data is saved */
+function setSubmittedState(done) {
+    const btn = document.getElementById('submitBtn');
+    if (!btn) return;
+    const txt = btn.querySelector('.ab-txt');
+    if (txt) txt.textContent = done ? 'Submitted' : 'Submit';
+    btn.classList.toggle('submitted', !!done);
+    btn.disabled = !!done;
+}
+
+/* "Data Submitted" popup shown after the saving animation */
+let submittedTimer = null;
+function showSubmittedPopup() {
+    const el = document.getElementById('submittedOverlay');
+    // restart the check animation each time
+    const card = el.querySelector('.submitted-card');
+    card.style.animation = 'none'; void card.offsetWidth; card.style.animation = '';
+    el.classList.add('active');
+    clearTimeout(submittedTimer);
+    submittedTimer = setTimeout(hideSubmittedPopup, 2500);
+}
+function hideSubmittedPopup() {
+    clearTimeout(submittedTimer);
+    document.getElementById('submittedOverlay').classList.remove('active');
 }
 
 
@@ -1498,8 +1734,9 @@ function generatePDF() {
         if (cliName2) doc.text(cliName2, rightX, yPos);   // cliName2 right
 
         const ts = new Date().toISOString().split('T')[0];
-        doc.save(`Mobile_Ambush_Checking_${ts}.pdf`);
-        showMessage('PDF generated and downloaded successfully!', 'success');
+        const fileName = `Mobile_Ambush_Checking_${ts}.pdf`;
+        const blob = doc.output('blob');
+        showPdfReady(blob, fileName);
     }
 
     let url1 = null, url2 = null, pending = 0;
@@ -1518,6 +1755,58 @@ function generatePDF() {
         r.readAsDataURL(sig2File);
     }
     if (!sig1File && !sig2File) finalize(null, null);
+}
+
+/* ═══════════════════════════════════════════════════
+   PDF READY POPUP (Download / Share-Save / Close)
+═══════════════════════════════════════════════════ */
+let readyPdfBlob = null;
+let readyPdfName = 'Mobile_Ambush_Checking.pdf';
+let readyPdfUrl  = null;
+
+function showPdfReady(blob, fileName) {
+    readyPdfBlob = blob;
+    readyPdfName = fileName;
+    if (readyPdfUrl) { URL.revokeObjectURL(readyPdfUrl); }
+    readyPdfUrl = URL.createObjectURL(blob);
+    document.getElementById('pdfModal').classList.add('active');
+    // try an automatic download first; the popup stays as a fallback
+    downloadReadyPdf(true);
+}
+
+function downloadReadyPdf(silent) {
+    if (!readyPdfBlob) return;
+    try {
+        const a = document.createElement('a');
+        a.href = readyPdfUrl;
+        a.download = readyPdfName;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        if (!silent) showMessage('Download started. Check your Downloads folder.', 'success');
+    } catch (e) {
+        if (!silent) showMessage('Download failed. Try Share / Save PDF.', 'error');
+    }
+}
+
+async function shareReadyPdf() {
+    if (!readyPdfBlob) return;
+    const file = new File([readyPdfBlob], readyPdfName, { type: 'application/pdf' });
+    try {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: 'Mobile Ambush Checking' });
+            return;
+        }
+    } catch (e) {
+        if (e && e.name === 'AbortError') return;   // user closed the share sheet
+    }
+    // Share not supported here (e.g. some in-app browsers): fall back to download
+    downloadReadyPdf(false);
+}
+
+function closePdfModal() {
+    document.getElementById('pdfModal').classList.remove('active');
 }
 
 /* ═══════════════════════════════════════════════════
