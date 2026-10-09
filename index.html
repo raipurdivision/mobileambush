@@ -770,7 +770,26 @@
         .pdf-modal-card .pm-download { background: #19a34a; color: #fff; text-transform: none; font-size: 1.1em; }
         .pdf-modal-card .pm-share,
         .pdf-modal-card .pm-close    { background: #eeeeee; color: #333; }
-    </style>
+    
+        /* ══ MOBILE: LOGO AT TOP OF FORM (stacked above title, centered) ══ */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                justify-content: center;
+                padding: 12px 12px 14px;
+                gap: 8px;
+            }
+            .header .logo {
+                position: static;
+                transform: none;
+                display: block;
+                height: 64px;
+                width: auto;
+                margin: 0 auto;
+            }
+            .header .header-text { width: 100%; }
+        }
+</style>
 </head>
 <body>
 <div class="container">
